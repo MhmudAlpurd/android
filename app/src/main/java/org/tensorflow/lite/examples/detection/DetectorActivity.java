@@ -189,11 +189,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
 
             if (device.equals("CPU")) {
-               // detector.useCPU();
-                detector.useNNAPI();
+               detector.useCPU();
+               // detector.useNNAPI();
             } else if (device.equals("GPU")) {
-               // detector.useGpu();
-                detector.useNNAPI();
+               detector.useGpu();
+                //detector.useNNAPI();
             } else if (device.equals("NNAPI")) {
                 detector.useNNAPI();
             }

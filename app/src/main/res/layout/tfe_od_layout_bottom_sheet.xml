@@ -35,6 +35,7 @@
         android:orientation="horizontal">
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/frame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -43,6 +44,7 @@
             android:textColor="@android:color/black" />
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/frame_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -58,6 +60,7 @@
         android:orientation="horizontal">
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/crop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -66,6 +69,7 @@
             android:textColor="@android:color/black" />
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/crop_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -86,6 +90,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:textStyle="bold"
             android:text="Inference Time"
             android:textColor="@android:color/black" />
 
@@ -113,6 +118,8 @@
         android:visibility="visible">
 
         <TextView
+
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -120,6 +127,7 @@
             android:textColor="@android:color/black" />
 
         <LinearLayout
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
@@ -166,11 +174,13 @@
         android:orientation="horizontal">
 
         <ListView
+            android:background="@color/design_default_color_primary_dark"
             android:id="@+id/device_list"
             android:layout_width="100dp"
             android:layout_height="wrap_content" />
 
         <ListView
+            android:background="@color/design_default_color_primary_dark"
             android:id="@+id/model_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
@@ -180,6 +190,6 @@
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:layout_marginTop="10dp"
-        android:background="@android:color/darker_gray" />
+        android:background="@color/design_default_color_primary" />
 
 </LinearLayout>

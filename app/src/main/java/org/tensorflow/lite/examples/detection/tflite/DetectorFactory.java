@@ -16,7 +16,7 @@ public class DetectorFactory {
         int[][] masks = new int[][]{{0}};
         int[] anchors = new int[]{0};
 
-        if (modelFilename.equals("yolov5m-fp16-320.tflite")) {
+        if (modelFilename.equals("CognitEye-f16.tflite")) {
             labelFilename = "file:///android_asset/coco.txt";
             isQuantized = false;
             inputSize = 320;
@@ -26,7 +26,7 @@ public class DetectorFactory {
                     10,13, 16,30, 33,23, 30,61, 62,45, 59,119, 116,90, 156,198, 373,326
             };
         }
-        else if (modelFilename.equals("yolov5m-fp16-320.tflite")) {
+        else if (modelFilename.equals("CognitEye-f16.tflite")) {
             labelFilename = "file:///android_asset/coco.txt";
             isQuantized = false;
             inputSize = 320;
@@ -36,7 +36,7 @@ public class DetectorFactory {
                     10,13, 16,30, 33,23, 30,61, 62,45, 59,119, 116,90, 156,198, 373,326
             };
         }
-        else if (modelFilename.equals("yolov5m-int8-320.tflite")) {
+        else if (modelFilename.equals("CognitEye-int8.tflite")) {
             labelFilename = "file:///android_asset/coco.txt";
             isQuantized = true;
             inputSize = 320;
