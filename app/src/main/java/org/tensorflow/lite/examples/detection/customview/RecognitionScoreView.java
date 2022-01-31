@@ -19,6 +19,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import java.util.List;
@@ -59,6 +60,7 @@ public class RecognitionScoreView extends View implements ResultsView {
 
     if (results != null) {
       for (final Recognition recog : results) {
+        Log.v("testtest", "RecognitionScoreView: "+ recog);
         canvas.drawText(recog.getTitle() + ": " + recog.getConfidence(), x, y, fgPaint);
         y += (int) (fgPaint.getTextSize() * 1.5f);
       }

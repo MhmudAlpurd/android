@@ -14,6 +14,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -29,6 +30,7 @@ import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final boolean TF_OD_API_IS_QUANTIZED = false;
 
-    private static final String TF_OD_API_MODEL_FILE = "yolov5m_fp16.tflite";
+    private static final String TF_OD_API_MODEL_FILE = "yolov5m-fp16-320.tflite";
 
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/coco.txt";
 
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         trackingOverlay = findViewById(R.id.tracking_overlay);
         trackingOverlay.addCallback(
                 canvas -> tracker.draw(canvas));
-
+Log.v("tf0123", TF_OD_API_INPUT_SIZE + sensorOrientation + "");
         tracker.setFrameConfiguration(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, sensorOrientation);
 
         try {
@@ -154,16 +156,18 @@ public class MainActivity extends AppCompatActivity {
 
         for (final Classifier.Recognition result : results) {
             final RectF location = result.getLocation();
+            //Log.v("testtest", ": "+ location);
+            Log.v("testtest03", "mainactivity: "+ result);
             if (location != null && result.getConfidence() >= MINIMUM_CONFIDENCE_TF_OD_API) {
                 canvas.drawRect(location, paint);
-//                cropToFrameTransform.mapRect(location);
-//
-//                result.setLocation(location);
-//                mappedRecognitions.add(result);
+                cropToFrameTransform.mapRect(location);
+
+                result.setLocation(location);
+                mappedRecognitions.add(result);
             }
         }
-//        tracker.trackResults(mappedRecognitions, new Random().nextInt());
-//        trackingOverlay.postInvalidate();
+        tracker.trackResults(mappedRecognitions, new Random().nextInt());
+        trackingOverlay.postInvalidate();
         imageView.setImageBitmap(bitmap);
     }
 }

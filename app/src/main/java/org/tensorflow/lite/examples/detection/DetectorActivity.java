@@ -52,7 +52,6 @@ import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
  */
 public class DetectorActivity extends CameraActivity implements OnImageAvailableListener {
     private static final Logger LOGGER = new Logger();
-
     private static final DetectorMode MODE = DetectorMode.TF_OD_API;
     private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.3f;
     private static final boolean MAINTAIN_ASPECT = true;
@@ -190,12 +189,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
 
             if (device.equals("CPU")) {
-                detector.useCPU();
+               // detector.useCPU();
+                detector.useNNAPI();
             } else if (device.equals("GPU")) {
-                detector.useGpu();
+               // detector.useGpu();
+                detector.useNNAPI();
             } else if (device.equals("NNAPI")) {
                 detector.useNNAPI();
             }
+
             detector.setNumThreads(numThreads);
 
             int cropSize = detector.getInputSize();
@@ -274,6 +276,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
                                 result.setLocation(location);
                                 mappedRecognitions.add(result);
+                                Log.v("testtest", "DetectorActivity: "+ result);
                             }
                         }
 
