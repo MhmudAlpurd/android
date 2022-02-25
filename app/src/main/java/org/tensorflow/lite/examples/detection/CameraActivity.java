@@ -34,11 +34,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.os.Trace;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.View;
@@ -50,6 +53,8 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -92,6 +97,19 @@ public abstract class CameraActivity extends AppCompatActivity
   private LinearLayout gestureLayout;
   private BottomSheetBehavior<LinearLayout> sheetBehavior;
 
+  private RadioButton rb_fl16;
+  private RadioButton rb_int8;
+  private RadioButton rb_cpu;
+  private RadioButton rb_gpu;
+  private RadioButton rb_nnapi;
+  private CardView cv_models;
+  private CardView cv_acc;
+  private RadioGroup rg_models;
+  private RadioGroup rg_acc;
+  private int countFrames;
+  long startTime;
+  long endTime;
+
   protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView;
   protected ImageView bottomSheetArrowImageView;
   private ImageView plusImageView, minusImageView;
@@ -110,6 +128,8 @@ public abstract class CameraActivity extends AppCompatActivity
     LOGGER.d("onCreate " + this);
     super.onCreate(null);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    startTime = SystemClock.uptimeMillis();
+
 
     setContentView(R.layout.tfe_od_activity_camera);
     Toolbar toolbar = findViewById(R.id.toolbar);
@@ -127,6 +147,16 @@ public abstract class CameraActivity extends AppCompatActivity
     plusImageView = findViewById(R.id.plus);
     minusImageView = findViewById(R.id.minus);
     deviceView = findViewById(R.id.device_list);
+
+    rb_cpu = findViewById(R.id.rb_cpu);
+    rb_fl16 = findViewById(R.id.rb_fl16);
+    rb_gpu = findViewById(R.id.rb_gpu);
+    rb_nnapi = findViewById(R.id.rb_nnapi);
+    rb_int8 = findViewById(R.id.rb_int8);
+    rg_acc = findViewById(R.id.rg_acc);
+    rg_models = findViewById(R.id.rg_models);
+
+
     deviceStrings.add("CPU");
     deviceStrings.add("GPU");
     deviceStrings.add("NNAPI");
@@ -137,19 +167,46 @@ public abstract class CameraActivity extends AppCompatActivity
     deviceView.setAdapter(deviceAdapter);
     deviceView.setItemChecked(defaultDeviceIndex, true);
     currentDevice = defaultDeviceIndex;
+
+
+    rg_models.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(RadioGroup radioGroup, int i) {
+
+        int idx_models = rg_models.indexOfChild(rg_models.findViewById(rg_models.getCheckedRadioButtonId()));
+        int idx_accelerator = rg_acc.indexOfChild(rg_acc.findViewById(rg_acc.getCheckedRadioButtonId()));
+
+        updateActiveModel(idx_models, idx_accelerator);
+      }
+    });
+    rg_acc.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(RadioGroup radioGroup, int i) {
+
+        int idx_models = rg_models.indexOfChild(rg_models.findViewById(rg_models.getCheckedRadioButtonId()));
+        int idx_accelerator = rg_acc.indexOfChild(rg_acc.findViewById(rg_acc.getCheckedRadioButtonId()));
+        updateActiveModel(idx_models, idx_accelerator);
+      }
+    });
+
+
+
     deviceView.setOnItemClickListener(
             new AdapterView.OnItemClickListener() {
               @Override
               public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                updateActiveModel();
+              //  updateActiveModel();
               }
             });
+    Log.d("fpsSupported", "camera activity1");
 
     bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
     gestureLayout = findViewById(R.id.gesture_layout);
     sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
     bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
     modelView = findViewById((R.id.model_list));
+    Log.d("fpsSupported", "camera activity5");
+
 
     modelStrings = getModelStrings(getAssets(), ASSET_PATH);
     modelView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -163,7 +220,7 @@ public abstract class CameraActivity extends AppCompatActivity
             new AdapterView.OnItemClickListener() {
               @Override
               public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                updateActiveModel();
+              //  updateActiveModel();
               }
             });
 
@@ -226,6 +283,8 @@ public abstract class CameraActivity extends AppCompatActivity
 
   protected ArrayList<String> getModelStrings(AssetManager mgr, String path){
     ArrayList<String> res = new ArrayList<String>();
+    Log.d("fpsSupported", "camera activity4");
+
     try {
       String[] files = mgr.list(path);
       for (String file : files) {
@@ -258,6 +317,7 @@ public abstract class CameraActivity extends AppCompatActivity
   /** Callback for android.hardware.Camera API */
   @Override
   public void onPreviewFrame(final byte[] bytes, final Camera camera) {
+    Log.d("fpsSupported", "camera activity3");
     if (isProcessingFrame) {
       LOGGER.w("Dropping frame!");
       return;
@@ -266,7 +326,14 @@ public abstract class CameraActivity extends AppCompatActivity
     try {
       // Initialize the storage bitmaps once when the resolution is known.
       if (rgbBytes == null) {
+
         Camera.Size previewSize = camera.getParameters().getPreviewSize();
+        Camera.Parameters parameters = camera.getParameters();
+
+        Log.d("fpsSupported", "camera activity2");
+        parameters.setPreviewFpsRange(1000, 1000);
+        camera.setParameters(parameters);
+
         previewHeight = previewSize.height;
         previewWidth = previewSize.width;
         rgbBytes = new int[previewWidth * previewHeight];
@@ -409,6 +476,22 @@ public abstract class CameraActivity extends AppCompatActivity
   }
 
   protected synchronized void runInBackground(final Runnable r) {
+    countFrames ++;
+    endTime = SystemClock.uptimeMillis();
+    Log.d("FrameTest", "CONTFRAME: " + countFrames);
+    Log.d("FrameTest", "StartTime: " + startTime);
+    Log.d("FrameTest", "EndTime: " + endTime);
+
+    long spendedTime = endTime - startTime;
+    double fps = (countFrames / ((endTime - startTime)*0.001));
+
+
+
+    Log.d("FrameTest", "FPS: " + fps);
+
+
+    Log.d("fpsSupported", "camera activity6");
+
     if (handler != null) {
       handler.post(r);
     }
@@ -418,6 +501,7 @@ public abstract class CameraActivity extends AppCompatActivity
   public void onRequestPermissionsResult(
       final int requestCode, final String[] permissions, final int[] grantResults) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    Log.d("fpsSupported", "camera activity7");
     if (requestCode == PERMISSIONS_REQUEST) {
       if (allPermissionsGranted(grantResults)) {
         setFragment();
@@ -452,6 +536,8 @@ public abstract class CameraActivity extends AppCompatActivity
                 "Camera permission is required for this demo",
                 Toast.LENGTH_LONG)
             .show();
+        Log.d("fpsSupported", "camera activity9");
+
       }
       requestPermissions(new String[] {PERMISSION_CAMERA}, PERMISSIONS_REQUEST);
     }
@@ -460,6 +546,8 @@ public abstract class CameraActivity extends AppCompatActivity
   // Returns true if the device supports the required hardware level, or better.
   private boolean isHardwareLevelSupported(
       CameraCharacteristics characteristics, int requiredLevel) {
+    Log.d("fpsSupported", "camera activity11");
+
     int deviceLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
     if (deviceLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
       return requiredLevel == deviceLevel;
@@ -609,7 +697,7 @@ public abstract class CameraActivity extends AppCompatActivity
     inferenceTimeTextView.setText(inferenceTime);
   }
 
-  protected abstract void updateActiveModel();
+  protected abstract void updateActiveModel(int idx_model, int idx_acc);
   protected abstract void processImage();
 
   protected abstract void onPreviewSizeChosen(final Size size, final int rotation);

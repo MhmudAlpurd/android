@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         this.imageView.setImageBitmap(cropBitmap);
 
+
         initBox();
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();

@@ -39,9 +39,9 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".CameraActivity"
-            android:label="CameraActivity" />
+            <activity
+                android:name=".CameraActivity"
+                android:label="CameraActivity" />
 
 
     </application>

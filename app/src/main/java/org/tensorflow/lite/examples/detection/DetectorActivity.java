@@ -30,9 +30,11 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -62,6 +64,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private Integer sensorOrientation;
 
     private YoloV5Classifier detector;
+    int frameInOnePeriod = 0;
 
     private long lastProcessingTimeMs;
     private Bitmap rgbFrameBitmap = null;
@@ -76,6 +79,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private Matrix cropToFrameTransform;
 
     private MultiBoxTracker tracker;
+    public int ii = 0;
+    long startTimeFrame = SystemClock.uptimeMillis();
+    long endTimeFrame;
+
 
     private BorderedText borderedText;
 
@@ -140,10 +147,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
     }
 
-    protected void updateActiveModel() {
+    protected void updateActiveModel(int model_checked, int acc_checked) {
         // Get UI information before delegating to background
-        final int modelIndex = modelView.getCheckedItemPosition();
-        final int deviceIndex = deviceView.getCheckedItemPosition();
+/*        final int modelIndex = modelView.getCheckedItemPosition();
+        final int deviceIndex = deviceView.getCheckedItemPosition();*/
+
+        final int modelIndex = model_checked;
+        final int deviceIndex = acc_checked;
         String threads = threadsTextView.getText().toString().trim();
         final int numThreads = Integer.parseInt(threads);
 
@@ -152,8 +162,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     && numThreads == currentNumThreads) {
                 return;
             }
-            currentModel = modelIndex;
-            currentDevice = deviceIndex;
+            currentModel = modelIndex; //cpu:0, gpu:1, nnapi:2
+            currentDevice = deviceIndex; //fp16:0, int8:1
             currentNumThreads = numThreads;
 
             // Disable classifier while updating
@@ -245,8 +255,28 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     public void run() {
                         LOGGER.i("Running detection on image " + currTimestamp);
                         final long startTime = SystemClock.uptimeMillis();
-                        final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
-                        lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                        ii += 1;
+
+
+                        Log.v("frames", "frames: " + ii);
+                        endTimeFrame = SystemClock.uptimeMillis();
+                        long spendedTime = endTimeFrame - startTimeFrame;
+                        double fpsdetected = ii / ((endTimeFrame - startTimeFrame)*0.001) ;
+                        //final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
+                        ArrayList<Classifier.Recognition> results = new ArrayList<Classifier.Recognition>();
+                        //TODO: CONTROL FRAMES! 250ms
+                        Log.d("spendedTime", "spendedTime1: " + spendedTime);
+
+                        if (spendedTime >= 250) {
+                            Log.d("spendedTime", "spendedTime2: rec");
+                            results = detector.recognizeImage(croppedBitmap);
+                            lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                            startTimeFrame = SystemClock.uptimeMillis();
+                        }else {
+                            lastProcessingTimeMs = 0;
+                        }
+                        Log.d("resultsTest", "test: " + results);
+
 
                         Log.e("CHECK", "run: " + results.size());
 

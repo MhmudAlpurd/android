@@ -23,6 +23,7 @@ import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -40,6 +41,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
   private static final Logger LOGGER = new Logger();
   /** Conversion from screen rotation to JPEG orientation. */
   private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+  int ii = 0;
 
   static {
     ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -47,6 +49,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
     ORIENTATIONS.append(Surface.ROTATION_180, 270);
     ORIENTATIONS.append(Surface.ROTATION_270, 180);
   }
+
 
   private Camera camera;
   private Camera.PreviewCallback imageListener;
@@ -67,14 +70,24 @@ public class LegacyCameraConnectionFragment extends Fragment {
 
           int index = getCameraId();
           camera = Camera.open(index);
-
+          Log.d("fpsSupported", "LegacyCamera");
           try {
             Camera.Parameters parameters = camera.getParameters();
+            //TODO: CHANGE FPS
+            //parameters.setPreviewFpsRange(1000, 1000);
             List<String> focusModes = parameters.getSupportedFocusModes();
             if (focusModes != null
                 && focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
               parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             }
+            ii += 1;
+            List<int[]> getSupportedFPS = parameters.getSupportedPreviewFpsRange();
+            Log.d("fpsSupported", "availableFPS: " + getSupportedFPS);
+            Log.d("fpsSupported", "ii: " + ii);
+
+/*            parameters.setPreviewFpsRange(1000, 1000);
+            if ( parameters.isAutoExposureLockSupported() )
+              parameters.setAutoExposureLock( true );*/
             List<Camera.Size> cameraSizes = parameters.getSupportedPreviewSizes();
             Size[] sizes = new Size[cameraSizes.size()];
             int i = 0;
@@ -95,7 +108,6 @@ public class LegacyCameraConnectionFragment extends Fragment {
           camera.setPreviewCallbackWithBuffer(imageListener);
           Camera.Size s = camera.getParameters().getPreviewSize();
           camera.addCallbackBuffer(new byte[ImageUtils.getYUVByteSize(s.height, s.width)]);
-
           textureView.setAspectRatio(s.height, s.width);
 
           camera.startPreview();
@@ -126,23 +138,27 @@ public class LegacyCameraConnectionFragment extends Fragment {
   @Override
   public View onCreateView(
       final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    Log.d("fpsSupported", "LegacyCamera1");
     return inflater.inflate(layout, container, false);
   }
 
   @Override
   public void onViewCreated(final View view, final Bundle savedInstanceState) {
+    Log.d("fpsSupported", "LegacyCamera2");
     textureView = (AutoFitTextureView) view.findViewById(R.id.texture);
   }
 
   @Override
   public void onActivityCreated(final Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
+    Log.d("fpsSupported", "LegacyCamera3");
   }
 
   @Override
   public void onResume() {
     super.onResume();
     startBackgroundThread();
+    Log.d("fpsSupported", "LegacyCamera4");
     // When the screen is turned off and turned back on, the SurfaceTexture is already
     // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
     // a camera and start preview from here (otherwise, we wait until the surface is ready in
@@ -160,6 +176,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
     stopCamera();
     stopBackgroundThread();
     super.onPause();
+    Log.d("fpsSupported", "LegacyCamera5");
   }
 
   /** Starts a background thread and its {@link Handler}. */
@@ -189,6 +206,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
   }
 
   private int getCameraId() {
+    Log.d("fpsSupported", "LegacyCamera6");
     CameraInfo ci = new CameraInfo();
     for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
       Camera.getCameraInfo(i, ci);
